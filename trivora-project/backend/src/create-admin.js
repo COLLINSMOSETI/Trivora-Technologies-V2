@@ -10,10 +10,10 @@ const { stdin: input, stdout: output } = require('process');
   const email=(await rl.question('Administrator email: ')).trim().toLowerCase();
   const password=await rl.question('Strong password (12+ characters recommended): ');
   if(!name||!email.includes('@')||password.length<10) throw new Error('Enter a name, valid email, and password with at least 10 characters.');
-  const [existing]=await db.execute('SELECT id FROM admins WHERE email=?',[email]);
-  if(existing.length) throw new Error('An administrator with that email already exists.');
+  const existing=await db.query('SELECT id FROM admins WHERE email=$1',[email]);
+  if(existing.rowCount) throw new Error('An administrator with that email already exists.');
   const hash=await bcrypt.hash(password,12);
-  await db.execute('INSERT INTO admins (name,email,password_hash) VALUES (?,?,?)',[name,email,hash]);
+  await db.query('INSERT INTO admins (name,email,password_hash) VALUES ($1,$2,$3)',[name,email,hash]);
   console.log(`Administrator ${email} created. Keep the credentials private.`);
  } catch(e){console.error(e.message);process.exitCode=1;} finally {rl.close();await db.end();}
 })();
